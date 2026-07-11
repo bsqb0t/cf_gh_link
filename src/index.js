@@ -26,21 +26,35 @@ function badRequest(message) {
   return new Response(message, { status: 400, headers: { "content-type": "text/plain; charset=UTF-8" } });
 }
 
+function githubBlobToRaw(target) {
+  if (target.hostname !== "github.com") return target;
+
+  const parts = target.pathname.split("/").filter(Boolean);
+  const blobIndex = parts.indexOf("blob");
+  if (blobIndex !== 2 || parts.length < 5) return target;
+
+  const [owner, repo] = parts;
+  const [ref, ...path] = parts.slice(blobIndex + 1);
+  return new URL(`https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path.join("/")}${target.search}`);
+}
+
 function targetFromRequest(url) {
   // Full GitHub URL form: /https://github.com/owner/repo/...
   const raw = url.href.slice(url.origin.length + 1);
-  if (raw.startsWith("https://")) return new URL(raw);
+  if (raw.startsWith("https://")) return githubBlobToRaw(new URL(raw));
 
   const parts = url.pathname.split("/").filter(Boolean);
   if (parts[0] === "gh" && parts.length >= 3) {
-    return new URL(`https://github.com/${parts.slice(1).join("/")}${url.search}`);
+    return githubBlobToRaw(new URL(`https://github.com/${parts.slice(1).join("/")}${url.search}`));
   }
   if (parts[0] === "api" && parts.length >= 2) {
     return new URL(`https://api.github.com/${parts.slice(1).join("/")}${url.search}`);
   }
   if (parts[0] === "releases" && parts.length >= 5) {
-    const [owner, repo, tag, ...asset] = parts.slice(1);
-    return new URL(`https://github.com/${owner}/${repo}/releases/download/${tag}/${asset.join("/")}${url.search}`);
+    const [owner, repo, ...releaseParts] = parts.slice(1);
+    const asset = releaseParts.pop();
+    const tag = releaseParts.join("/");
+    return new URL(`https://github.com/${owner}/${repo}/releases/download/${tag}/${asset}${url.search}`);
   }
   return null;
 }

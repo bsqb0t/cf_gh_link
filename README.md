@@ -40,3 +40,7 @@ git clone https://<worker>/gh/OWNER/REPO.git
 ## 安全与缓存
 
 仅允许 HTTPS 到 GitHub 白名单域名。Release 下载的跳转会改写回 Worker 域名，使客户端仍然经过加速器；仓库和 API 请求不被强制缓存，以免内容或鉴权语义错误。
+
+## 服务范围
+
+仅对静态资源下载提供加速，包括 Releases 文件、仓库压缩包和 Raw 文件。GitHub 网页、仓库主页及仓库介绍页不提供加速支持。

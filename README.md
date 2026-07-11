@@ -6,7 +6,7 @@
 
 - Releases 资源（优先支持，下载响应会在边缘缓存一年）
 - 仓库压缩包，例如 `archive/refs/heads/main.zip`
-- Raw 文件
+- Raw 文件（粘贴 GitHub `blob` 文件页会自动转换为 `raw.githubusercontent.com` 下载地址）
 - GitHub API
 - Git Smart HTTP：可用 Worker URL 执行 `git clone`、`fetch`、`pull`
 
@@ -30,10 +30,14 @@ https://<worker>/https://github.com/OWNER/REPO/releases/download/TAG/FILE
 
 ```text
 https://<worker>/releases/OWNER/REPO/TAG/FILE
+https://<worker>/releases/OWNER/REPO/TAG/WITH/SLASHES/FILE
 https://<worker>/gh/OWNER/REPO/archive/refs/heads/main.zip
+https://<worker>/gh/OWNER/REPO/blob/main/README.md
 https://<worker>/gh/OWNER/REPO/raw/main/README.md
 git clone https://<worker>/gh/OWNER/REPO.git
 ```
+
+短 `releases` 路由会把最后一个路径片段识别为资源文件名，因此 tag 可以包含 `/`。粘贴 GitHub `blob` 文件页时，Worker 会自动改写到对应的 raw 下载地址。
 
 对于 Git 操作，建议通过 `gh` 路由使用 Worker 地址作为 remote；Git 的 `info/refs`、`git-upload-pack` 请求会原样转发。
 

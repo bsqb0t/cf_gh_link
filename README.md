@@ -41,6 +41,31 @@ git clone https://<worker>/gh/OWNER/REPO.git
 
 对于 Git 操作，建议通过 `gh` 路由使用 Worker 地址作为 remote；Git 的 `info/refs`、`git-upload-pack` 请求会原样转发。
 
+
+## 固定短链
+
+如果有常用的加速资源，可以直接在 Cloudflare Workers 后台添加环境变量，无需修改代码即可生成固定短链。支持以下变量名（按优先级读取第一个非空值）：`SHORT_LINKS`、`FIXED_LINKS`、`LINKS`。
+
+推荐使用 JSON 对象格式：
+
+```json
+{
+  "mytool": "https://github.com/OWNER/REPO/releases/download/TAG/FILE",
+  "readme": "https://github.com/OWNER/REPO/blob/main/README.md"
+}
+```
+
+也支持逐行配置，便于在后台变量输入框中快速维护：
+
+```text
+mytool=https://github.com/OWNER/REPO/releases/download/TAG/FILE
+readme=https://github.com/OWNER/REPO/blob/main/README.md
+```
+
+配置完成后访问 `https://<worker>/mytool` 或 `https://<worker>/readme` 即可按对应 GitHub 资源进行加速。短链名称只能占用一级路径；`gh`、`api`、`releases` 等内置路由名称会保留给系统使用。短链目标仍会经过 GitHub 域名白名单校验，不会放开为通用代理。
+
+如果通过 Wrangler、GitHub Actions 或 Cloudflare 构建重新部署，请保留配置中的 `keep_vars: true`。否则重新部署可能会覆盖在 Cloudflare 后台手动添加的环境变量，导致访问短链时仍提示 `Use /gh/OWNER/REPO/..., /SHORT_NAME, or /https://github.com/...`。
+
 ## 安全与缓存
 
 仅允许 HTTPS 到 GitHub 白名单域名。Release 下载的跳转会改写回 Worker 域名，使客户端仍然经过加速器；仓库和 API 请求不被强制缓存，以免内容或鉴权语义错误。

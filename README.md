@@ -1,4 +1,4 @@
-# cf_gh_link
+ # cf_gh_link
 
 一个可直接部署到 Cloudflare Workers 的 GitHub 下载加速器。它只允许代理 GitHub 及其 Releases 下载域名，避免成为开放代理。
 
